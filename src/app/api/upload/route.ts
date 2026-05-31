@@ -6,8 +6,10 @@ import { parseDailyCollectionExcel, parseDailyCollectionPDF } from '@/lib/parser
 import { parseSalesReportExcel, parseSalesReportPDF } from '@/lib/parsers/salesReportParser';
 import fs from 'fs/promises';
 import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(req: Request) {
+  let localFilePath: string | null = null;
   try {
     // 1. Authenticate User
     const user = await getAuthenticatedUser();
@@ -54,14 +56,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid reportType. Must be "daily" or "sales".' }, { status: 400 });
     }
     
-    // 5. Save File Locally
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await fs.mkdir(uploadDir, { recursive: true });
-    
+    // 5. Save File (Vercel Blob Cloud Storage with Offline Local Fallback)
+    let uploadedFileUrl = '';
     const uniqueFileName = `${Date.now()}-${Math.floor(Math.random() * 1000000)}${extension}`;
-    const filePath = path.join(uploadDir, uniqueFileName);
-    await fs.writeFile(filePath, buffer);
-    const uploadedFileUrl = `/uploads/${uniqueFileName}`;
+    
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      // Direct streaming upload to Vercel Blob in production
+      const blob = await put(uniqueFileName, buffer, {
+        access: 'public',
+        contentType: file.type || undefined,
+      });
+      uploadedFileUrl = blob.url;
+    } else {
+      // Local fallback for offline environment setup
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      await fs.mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, uniqueFileName);
+      await fs.writeFile(filePath, buffer);
+      localFilePath = filePath;
+      uploadedFileUrl = `/uploads/${uniqueFileName}`;
+    }
     
     // 6. Invoke Appropriate Parser
     let parsedCount = 0;
@@ -103,7 +117,9 @@ export async function POST(req: Request) {
       
       if (parsedReports.length === 0) {
         // Clean up saved file if parsing failed completely
-        await fs.unlink(filePath).catch(() => {});
+        if (localFilePath) {
+          await fs.unlink(localFilePath).catch(() => {});
+        }
         return NextResponse.json({ error: 'Failed to parse sales report. Ensure the file has valid structure.' }, { status: 400 });
       }
       
@@ -140,6 +156,9 @@ export async function POST(req: Request) {
     
   } catch (error: any) {
     console.error('File upload error:', error);
+    if (localFilePath) {
+      await fs.unlink(localFilePath).catch(() => {});
+    }
     return NextResponse.json({ error: error.message || 'Internal server error during upload' }, { status: 500 });
   }
 }
