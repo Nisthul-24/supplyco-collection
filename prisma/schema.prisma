@@ -1,0 +1,65 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  role             String            @default("STAFF") // "ADMIN" or "STAFF"
+  password         String
+  createdAt        DateTime          @default(now())
+  dailyCollections DailyCollection[]
+  salesReports     SalesReport[]
+  dailyExpenses    DailyExpense[]
+}
+
+model DailyCollection {
+  id              String   @id @default(uuid())
+  reportDate      DateTime
+  outletName      String
+  totalCollection Float
+  paymentDetails  String   // JSON string representing UPI, Card, Coupon details
+  rawTextData     String?  // Text content for search or audit logs
+  uploadedFileUrl String
+  fileName        String
+  fileHash        String   @unique // Prevent duplicate uploads
+  uploadedById    String?  // Relates to User
+  uploadedBy      User?    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+}
+
+model SalesReport {
+  id              String   @id @default(uuid())
+  reportMonth     String   // Format: "YYYY-MM" (e.g., "2026-04")
+  outletName      String
+  subsidySales    Float
+  nonSubsidySales Float
+  bulkSales       Float
+  grandTotal      Float
+  extraDetails    String   // JSON string representing all other subcolumns (FSSR, Overage, etc.)
+  uploadedFileUrl String
+  fileName        String
+  fileHash        String   @unique // Prevent duplicate uploads
+  uploadedById    String?  // Relates to User
+  uploadedBy      User?    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+}
+
+model DailyExpense {
+  id             String   @id @default(uuid())
+  expenseDate    DateTime
+  category       String
+  customCategory String?
+  amount         Float
+  description    String?
+  recordedById   String?
+  recordedBy     User?    @relation(fields: [recordedById], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+}
+
