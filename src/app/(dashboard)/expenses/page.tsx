@@ -357,7 +357,7 @@ export default function ExpensesPage() {
   const exportExcel = () => {
     // Generate data array for Excel
     const dataRows: (string | number)[][] = [
-      ['SUPPLYCO OUTLET DAILY EXPENSE ARCHIVE REPORT'],
+      ['SSM MUKKAM OUTLET DAILY EXPENSE ARCHIVE REPORT'],
       [`Exported On: ${new Date().toLocaleDateString('en-IN')}`],
       [`Active Filters: ${filterCategory ? `Category: ${filterCategory}` : 'All Categories'}${filterStartDate ? `, Date Range: ${filterStartDate} to ${filterEndDate}` : ''}`],
       [''],
@@ -398,7 +398,7 @@ export default function ExpensesPage() {
       { wch: 45 }  // Description
     ];
 
-    const fileName = `supplyco_daily_expenses_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const fileName = `ssm_mukkam_daily_expenses_${new Date().toISOString().slice(0,10)}.xlsx`;
     xlsx.writeFile(workbook, fileName);
   };
 
@@ -790,7 +790,12 @@ export default function ExpensesPage() {
               </div>
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    const originalTitle = document.title;
+                    document.title = 'SSM Mukkam Daily Expense Report';
+                    window.print();
+                    document.title = originalTitle;
+                  }}
                   disabled={expenses.length === 0}
                   className="flex items-center space-x-2 py-2 px-4 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-xs font-bold transition-all border border-white/5 disabled:opacity-50 cursor-pointer"
                 >
@@ -921,7 +926,7 @@ export default function ExpensesPage() {
           PRINT ONLY VIEW FOR PDF GENERATION
           ========================================= */}
       <div className="print-header hidden">
-        <div className="print-title">Supplyco Daily Expense Report</div>
+        <div className="print-title">SSM Mukkam Daily Expense Report</div>
         <div className="print-meta">
           Outlet Accounting Statement • Generated on {new Date().toLocaleString('en-IN')}
           {filterStartDate && ` • Date Range: ${filterStartDate} to ${filterEndDate}`}
