@@ -9,7 +9,6 @@ import {
   Sparkles,
   ArrowRight,
   ShieldAlert,
-  UserCheck,
   User,
   ShieldCheck
 } from 'lucide-react';
@@ -105,18 +104,6 @@ export default function LoginForm() {
     } catch (err: any) {
       setError('A network connection error occurred. Please try again.');
       setLoading(false);
-    }
-  };
-
-  // Quick login seeder helper
-  const handleQuickLogin = (role: 'admin' | 'staff') => {
-    setActiveTab('login');
-    if (role === 'admin') {
-      setEmail('admin@shop.com');
-      setPassword('admin123');
-    } else {
-      setEmail('staff@shop.com');
-      setPassword('staff123');
     }
   };
 
@@ -241,30 +228,6 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* Seeder Quick Logins */}
-      <div className="mt-6 pt-5 border-t border-white/5">
-        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center mb-3">
-          Quick Shop Portals
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => handleQuickLogin('admin')}
-            className="flex items-center justify-center space-x-2 py-2 px-3 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 border border-emerald-500/10 hover:border-emerald-500/20 rounded-xl text-[10px] font-bold transition-all"
-          >
-            <UserCheck className="h-3.5 w-3.5" />
-            <span>Mukkam Outlet</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickLogin('staff')}
-            className="flex items-center justify-center space-x-2 py-2 px-3 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 hover:text-indigo-300 border border-indigo-500/10 hover:border-indigo-500/20 rounded-xl text-[10px] font-bold transition-all"
-          >
-            <UserCheck className="h-3.5 w-3.5" />
-            <span>SSM Mukkam Outlet</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
