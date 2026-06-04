@@ -46,7 +46,7 @@ model SalesReport {
   extraDetails    String   // JSON string representing all other subcolumns (FSSR, Overage, etc.)
   uploadedFileUrl String
   fileName        String
-  fileHash        String   @unique // Prevent duplicate uploads
+  fileHash        String   // Prevent duplicate uploads
   uploadedById    String?  // Relates to User
   uploadedBy      User?    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())

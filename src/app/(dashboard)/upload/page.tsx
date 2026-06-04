@@ -142,10 +142,25 @@ export default function UploadPage() {
       
       clearInterval(progressInterval);
       
-      const data = await res.json();
+      let errorMsg = 'Ingestion failed. Ensure the report has valid format structures.';
+      let data = null;
+      
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+        if (data && data.error) {
+          errorMsg = data.error;
+        }
+      } else {
+        const text = await res.text();
+        errorMsg = text || `Server returned error status: ${res.status} ${res.statusText}`;
+        if (errorMsg.includes('<') && errorMsg.includes('>')) {
+          errorMsg = `Server error (${res.status}): The upload request could not be processed. Please check if the database or server is reachable.`;
+        }
+      }
       
       if (!res.ok) {
-        setErrorMessage(data.error || 'Ingestion failed. Ensure the report has valid format structures.');
+        setErrorMessage(errorMsg);
         setStatus('error');
         return;
       }
