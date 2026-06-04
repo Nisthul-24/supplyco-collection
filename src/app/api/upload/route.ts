@@ -69,12 +69,18 @@ export async function POST(req: Request) {
       uploadedFileUrl = blob.url;
     } else {
       // Local fallback for offline environment setup
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      const isVercel = process.env.VERCEL === '1' || process.env.NOW_BUILDER !== undefined;
+      const uploadDir = isVercel
+        ? path.join('/tmp', 'uploads')
+        : path.join(process.cwd(), 'public', 'uploads');
+
       await fs.mkdir(uploadDir, { recursive: true });
       const filePath = path.join(uploadDir, uniqueFileName);
       await fs.writeFile(filePath, buffer);
       localFilePath = filePath;
-      uploadedFileUrl = `/uploads/${uniqueFileName}`;
+      uploadedFileUrl = isVercel
+        ? `/tmp/uploads/${uniqueFileName}`
+        : `/uploads/${uniqueFileName}`;
     }
     
     // 6. Invoke Appropriate Parser
