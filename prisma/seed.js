@@ -205,23 +205,32 @@ async function main() {
       totalWithoutBulk: s.grandTotal
     };
 
-    await prisma.salesReport.upsert({
-      where: { fileHash: s.hash },
-      update: { uploadedById: staff.id },
-      create: {
-        reportMonth: s.month,
-        outletName: salesOutlet,
-        subsidySales: totalSubsidySales,
-        nonSubsidySales: totalNonSubsidySales,
-        bulkSales: 0,
-        grandTotal: s.grandTotal,
-        extraDetails: JSON.stringify(extraDetails),
-        uploadedFileUrl: '/uploads/sample-sales.xlsx',
-        fileName: 'sample_monthly_sales.xlsx',
-        fileHash: s.hash,
-        uploadedById: staff.id
-      }
+    const existingReport = await prisma.salesReport.findFirst({
+      where: { fileHash: s.hash }
     });
+
+    if (existingReport) {
+      await prisma.salesReport.update({
+        where: { id: existingReport.id },
+        data: { uploadedById: staff.id }
+      });
+    } else {
+      await prisma.salesReport.create({
+        data: {
+          reportMonth: s.month,
+          outletName: salesOutlet,
+          subsidySales: totalSubsidySales,
+          nonSubsidySales: totalNonSubsidySales,
+          bulkSales: 0,
+          grandTotal: s.grandTotal,
+          extraDetails: JSON.stringify(extraDetails),
+          uploadedFileUrl: '/uploads/sample-sales.xlsx',
+          fileName: 'sample_monthly_sales.xlsx',
+          fileHash: s.hash,
+          uploadedById: staff.id
+        }
+      });
+    }
   }
   console.log('Seeded Monthly Sales History for outlet:', salesOutlet, 'assigned to STAFF');
 
